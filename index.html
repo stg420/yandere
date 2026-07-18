@@ -4,12 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>YandereSimulator</title>
-    <!-- Ensure this path is correct relative to the root -->
-    <script src="/yandere/Build/UnityLoader.js"></script>
+    <script src="Build/UnityLoader.js"></script>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
         #unityContainer { width: 100vw; height: 100vh; }
-        #loading-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; font-family: sans-serif; }
+        #loading-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; font-family: sans-serif; text-align: center; }
     </style>
     <script>
         let max = 0, done = 0;
@@ -23,7 +22,6 @@
                         resolve(URL.createObjectURL(blob));
                         return;
                     }
-                    // Use leading slash to ensure paths are absolute from domain root
                     fetch(fileParts[index]).then(r => r.arrayBuffer()).then(b => {
                         buffers.push(b);
                         done++;
@@ -35,30 +33,28 @@
             });
         }
 
-        function getParts(file, start, end) {
-            const parts = [];
-            for (let i = start; i <= end; i++) parts.push(file + ".part" + i);
-            max += end;
-            return parts;
-        }
-
         window.onload = function() {
-            // Absolute paths based on your console error structure
-            const dataFiles = getParts("/yandere/Build/YandereSim.data.unityweb", 1, 5);
-            
-            mergeFiles(dataFiles).then((dataUrl) => {
+            // Using relative paths to avoid the 404s
+            const parts = ["Build/YandereSim.data.unityweb.part1", "Build/YandereSim.data.unityweb.part2", "Build/YandereSim.data.unityweb.part3", "Build/YandereSim.data.unityweb.part4", "Build/YandereSim.data.unityweb.part5"];
+            max = parts.length;
+
+            mergeFiles(parts).then((dataUrl) => {
                 const config = {
                     companyName: "YandereDev",
                     productName: "YandereSimulator",
                     dataUrl: dataUrl,
-                    wasmCodeUrl: "/yandere/Build/YandereSim.wasm.code.unityweb",
-                    wasmFrameworkUrl: "/yandere/Build/YandereSim.wasm.framework.unityweb",
+                    wasmCodeUrl: "Build/YandereSim.wasm.code.unityweb",
+                    wasmFrameworkUrl: "Build/YandereSim.wasm.framework.unityweb",
                     TOTAL_MEMORY: 268435456,
                     graphicsAPI: ["WebGL 2.0", "WebGL 1.0"]
                 };
 
-                UnityLoader.instantiate("unityContainer", config);
-                document.querySelector("#loading-text").remove();
+                // Pass the config OBJECT directly, not a URL string
+                UnityLoader.instantiate("unityContainer", config, {
+                    onProgress: function(instance, progress) {
+                        if (progress === 1) document.querySelector("#loading-text").remove();
+                    }
+                });
             });
         };
     </script>
