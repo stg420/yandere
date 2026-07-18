@@ -2,42 +2,30 @@
 <html lang="en-us">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>YandereSimulator</title>
     <script src="Build/UnityLoader.js"></script>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
         #unityContainer { width: 100vw; height: 100vh; }
-        #loading-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; font-family: sans-serif; text-align: center; }
     </style>
     <script>
         window.onload = function() {
-            // This configuration object explicitly tells the loader where to find your files.
-            // It bypasses the need for the external .json file if that file was causing issues.
+            // Manually define the paths to your specific files
             const config = {
                 companyName: "YandereDev",
                 productName: "YandereSimulator",
-                // This points to the first part; the engine should automatically pull the others if named correctly
-                dataUrl: "Build/YandereSim.data.unityweb.part1",
+                // Manually mapping the data path
+                dataUrl: "Build/YandereSim.data.unityweb", 
                 wasmCodeUrl: "Build/YandereSim.wasm.code.unityweb",
-                wasmFrameworkUrl: "Build/YandereSim.wasm.framework.unityweb",
-                TOTAL_MEMORY: 268435456,
-                graphicsAPI: ["WebGL 2.0", "WebGL 1.0"]
+                wasmFrameworkUrl: "Build/YandereSim.wasm.framework.unityweb"
             };
 
-            UnityLoader.instantiate("unityContainer", config, {
-                Module: {
-                    onRuntimeInitialized: function() {
-                        const loadingText = document.querySelector("#loading-text");
-                        if (loadingText) loadingText.remove();
-                    }
-                }
-            });
+            // Instantiate using the config object directly
+            UnityLoader.instantiate("unityContainer", config);
         };
     </script>
 </head>
 <body>
-    <div id="loading-text">LOADING...</div>
     <div id="unityContainer"></div>
 </body>
 </html>
