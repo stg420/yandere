@@ -3,29 +3,56 @@
 <head>
     <meta charset="utf-8" />
     <title>YandereSimulator</title>
-    <script src="Build/UnityLoader.js"></script>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
         #unityContainer { width: 100vw; height: 100vh; }
+        #loading-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; font-family: sans-serif; text-align: center; }
     </style>
-    <script>
-        window.onload = function() {
-            // Manually define the paths to your specific files
-            const config = {
-                companyName: "YandereDev",
-                productName: "YandereSimulator",
-                // Manually mapping the data path
-                dataUrl: "Build/YandereSim.data.unityweb", 
-                wasmCodeUrl: "Build/YandereSim.wasm.code.unityweb",
-                wasmFrameworkUrl: "Build/YandereSim.wasm.framework.unityweb"
-            };
-
-            // Instantiate using the config object directly
-            UnityLoader.instantiate("unityContainer", config);
-        };
-    </script>
 </head>
 <body>
+    <div id="loading-text">LOADING...</div>
     <div id="unityContainer"></div>
+
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+        async function fetchFile(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to load: " + url);
+            return response.arrayBuffer();
+        }
+
+        async function mergeFiles(basePath, count) {
+            const parts = [];
+            for (let i = 1; i <= count; i++) parts.push(basePath + ".part" + i);
+            const buffers = await Promise.all(parts.map(fetchFile));
+            return URL.createObjectURL(new Blob(buffers));
+        }
+
+        (async () => {
+            try {
+                // Merge the 5 parts of the data file
+                const dataUrl = await mergeFiles("Build/YandereSim.data.unityweb", 5);
+
+                const config = {
+                    companyName: "YandereDev",
+                    productName: "YandereSimulator",
+                    dataUrl: dataUrl,
+                    wasmCodeUrl: "Build/YandereSim.wasm.code.unityweb",
+                    wasmFrameworkUrl: "Build/YandereSim.wasm.framework.unityweb",
+                    TOTAL_MEMORY: 268435456,
+                    graphicsAPI: ["WebGL 2.0", "WebGL 1.0"]
+                };
+
+                UnityLoader.instantiate("unityContainer", config, {
+                    onRuntimeInitialized: () => {
+                        document.querySelector("#loading-text").remove();
+                    }
+                });
+            } catch (err) {
+                alert("Error loading game: " + err.message);
+                console.error(err);
+            }
+        })();
+    </script>
 </body>
 </html>
